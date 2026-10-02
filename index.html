@@ -19,7 +19,18 @@
     var bin=new Uint8Array(raw.length);
     for(var i=0;i<raw.length;i++) bin[i]=raw.charCodeAt(i);
     if(!window.pako) throw new Error('pako لم يتم تحميله');
-    var html=window.pako.ungzip(bin,{to:'string'});
+    function gzipBody(u8){
+      var p=10, flg=u8[3];
+      if(flg&4){ var xlen=u8[p] | (u8[p+1]<<8); p+=2+xlen; }
+      if(flg&8){ while(p<u8.length && u8[p++]!==0){} }
+      if(flg&16){ while(p<u8.length && u8[p++]!==0){} }
+      if(flg&2){ p+=2; }
+      if(p>=u8.length-8) throw new Error('gzip header/trailer invalid');
+      return u8.subarray(p,u8.length-8);
+    }
+    var bytes=window.pako.inflateRaw(gzipBody(bin));
+    var html=new TextDecoder('utf-8').decode(bytes);
+    if(html.indexOf('<!doctype html>')!==0 && html.indexOf('<!DOCTYPE html>')!==0) throw new Error('payload decode failed');
     document.open(); document.write(html); document.close();
   }catch(e){
     document.body.innerHTML='<div class="boot"><div class="box"><div class="logo">CISM</div><h2>تعذر تشغيل التطبيق</h2><div class="err"><b>جرّب التالي:</b><br>1) تأكد أن الاتصال بالإنترنت يعمل.<br>2) أعد تحميل الصفحة مرة واحدة.<br>3) إذا استمرت المشكلة، أغلق Safari وافتح الرابط من جديد.</div><p class="muted">تم تسجيل الخطأ: '+String(e.message||e)+'</p></div></div>';
