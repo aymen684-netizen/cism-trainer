@@ -1,4 +1,4 @@
-const C='cism-trainer-v3';
+const C='cism-trainer-v4';
 const A=['./manifest.webmanifest','./icon.svg',
 ...Array.from({length:8},(_,i)=>'./payload-'+String(i).padStart(2,'0')+'.js'),
 'https://cdn.jsdelivr.net/npm/pako@2.1.0/dist/pako.min.js'];
