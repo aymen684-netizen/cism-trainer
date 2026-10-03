@@ -41,23 +41,20 @@
       "localStorage.removeItem('cismSimState')",
       "try{localStorage.removeItem('cismSimState')}catch(e){}"
     );
-    // Render the simulator directly in the top-level document.
-    // Scripts inserted via innerHTML do not execute, so recreate them explicitly.
-    var parsed=new DOMParser().parseFromString(html,'text/html');
-    var codes=[];
-    parsed.querySelectorAll('script').forEach(function(s){
-      codes.push(s.textContent||'');
-      s.remove();
-    });
-    document.documentElement.lang=parsed.documentElement.lang||'ar';
-    document.documentElement.dir=parsed.documentElement.dir||'rtl';
-    document.head.innerHTML=parsed.head.innerHTML;
-    document.body.innerHTML=parsed.body.innerHTML;
-    codes.forEach(function(code){
-      var s=document.createElement('script');
-      s.textContent=code;
-      document.body.appendChild(s);
-    });
+    // Load the decoded simulator as a real HTML document.
+    // A Blob document lets Safari parse and execute the simulator's own script normally.
+    // This avoids both document.write() and srcdoc/dynamic-script quirks on iPhone.
+    var blob=new Blob([html],{type:'text/html;charset=utf-8'});
+    var appUrl=URL.createObjectURL(blob);
+    document.body.innerHTML='';
+    document.body.style.cssText='margin:0;background:#07111f;overflow:hidden';
+    var frame=document.createElement('iframe');
+    frame.setAttribute('title','CISM Trainer');
+    frame.setAttribute('allow','clipboard-read; clipboard-write');
+    frame.style.cssText='position:fixed;inset:0;width:100%;height:100%;border:0;background:#07111f;';
+    frame.src=appUrl;
+    frame.onload=function(){setTimeout(function(){URL.revokeObjectURL(appUrl)},30000)};
+    document.body.appendChild(frame);
   }catch(e){
     document.body.innerHTML='<div class="boot"><div class="box"><div class="logo">CISM</div><h2>تعذر تشغيل التطبيق</h2><div class="err"><b>جرّب التالي:</b><br>1) تأكد أن الاتصال بالإنترنت يعمل.<br>2) أعد تحميل الصفحة مرة واحدة.<br>3) إذا استمرت المشكلة، أغلق Safari وافتح الرابط من جديد.</div><p class="muted">تم تسجيل الخطأ: '+String(e.message||e)+'</p></div></div>';
     console.error(e);
