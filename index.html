@@ -31,6 +31,16 @@
     var bytes=window.pako.inflateRaw(gzipBody(bin));
     var html=new TextDecoder('utf-8').decode(bytes);
     if(html.indexOf('<!doctype html>')!==0 && html.indexOf('<!DOCTYPE html>')!==0) throw new Error('payload decode failed');
+    // iPhone Safari may block localStorage inside srcdoc. Make persistence optional
+    // so starting/finishing a session still works even when storage is unavailable.
+    html=html.replace(
+      "function save(){if(state)localStorage.setItem('cismSimState',JSON.stringify(state))}",
+      "function save(){try{if(state)localStorage.setItem('cismSimState',JSON.stringify(state))}catch(e){}}"
+    );
+    html=html.replaceAll(
+      "localStorage.removeItem('cismSimState')",
+      "try{localStorage.removeItem('cismSimState')}catch(e){}"
+    );
     // Safari on iPhone can keep the bootstrap document alive when document.write()
     // is used during parsing. Render the simulator in a same-origin srcdoc iframe instead.
     document.body.innerHTML='';
