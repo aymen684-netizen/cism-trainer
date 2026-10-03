@@ -31,6 +31,16 @@
     var bytes=window.pako.inflateRaw(gzipBody(bin));
     var html=new TextDecoder('utf-8').decode(bytes);
     if(html.indexOf('<!doctype html>')!==0 && html.indexOf('<!DOCTYPE html>')!==0) throw new Error('payload decode failed');
+    // Repair six source-text corruptions that made the simulator's main JavaScript invalid.
+    // Without these repairs Safari can render the setup HTML, but no button handlers are installed.
+    html=html.replaceAll('industry swer":"C",",','industry standards.",');
+    html=html.replaceAll('established swer":"C" when','established standards when');
+    html=html.replaceAll('bypassed the star":"C contractor','bypassed the standard contractor');
+    html=html.replaceAll('the star":"C due diligence','the standard due diligence');
+    html=html.replaceAll('old version of the star":"C will','old version of the standard will');
+    html=html.replaceAll('"C":"To define swer":"C" to be implemented"','"C":"To define standards to be implemented"');
+    html=html.replaceAll('After updating password swer":"C",','After updating password standards,');
+    html=html.replaceAll('enforcing these swer":"C" The','enforcing these standards. The');
     // iPhone Safari may block localStorage inside srcdoc. Make persistence optional
     // so starting/finishing a session still works even when storage is unavailable.
     html=html.replace(
